@@ -1,0 +1,46 @@
+html,
+body {
+	height: 100%;
+}
+
+body {
+	font-family: 'Alef', sans-serif;
+}
+h1 {
+	font-family: 'Gloria Hallelujah', sans-serif;
+}
+
+#menu {
+	display: table;
+	width: 100%;
+	height: 100%;
+}
+#menu > div {
+	display: table-cell;
+	vertical-align: middle;
+}
+#menu > div > div {
+	width: 640px;
+	margin: 0 auto 0;
+	text-align: center;
+}
+
+#game {
+	display: table;
+	width: 100%;
+	height: 100%;
+}
+#game > div {
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+}
+#game > div > div {
+	/*width: 640px;*/
+	margin: 0 auto 0;
+	text-align: left;
+}
+
+#status {
+	font-family: 'Alef', sans-serif;
+}

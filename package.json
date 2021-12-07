@@ -1,0 +1,17 @@
+{
+  "name": "ayadhan",
+  "version": "1.0.0",
+  "description": "For a chess board UI: https://chessboardjs.com/examples.html#5000",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "jade": "^1.11.0",
+    "peer": "^0.6.1"
+  }
+}

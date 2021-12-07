@@ -1,0 +1,68 @@
+doctype html
+html(lang='en')
+	head
+		title Bet & Chess
+		meta(name='viewport' content='width=640px, initial-scale=1')
+
+		block styles
+			link(rel='stylesheet' href='//fonts.googleapis.com/css?family=Gloria+Hallelujah|Alef')
+			link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css')
+			link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/animate.css/3.4.0/animate.min.css')
+			link(rel='stylesheet' href='/assets/css/screen.css')
+			link(rel='stylesheet' href='//unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css')
+
+	body
+		section#menu
+			div.animated.bounceIn
+				div
+					h1 Bet & Chess
+					br
+					div.no-support(style='display: none;')
+						div.alert.alert-warning
+							p Unfortunately, your web browser does not <a href="http://iswebrtcreadyyet.com">support WebRTC</a>
+					div
+						form
+							div.form-group
+								label Bet Wei: 
+								input.form-controrl#betAmount(type="number", min="1" value=1)
+						a.btn.btn-primary.btn-lg(href='#start') Start
+						| &nbsp;
+						a.btn.btn-default.btn-lg(href='#join') Join
+
+		section#game(style='display: none;')
+			div.container
+				div.row
+					div.col-md-2
+					div.col-md-5
+						div.row
+							div.col-md-7
+								h1 Play Chess
+							div.col-md-5
+								a.btn.btn-danger.btn-lg(href='#resign') Resign
+								| &nbsp;
+								a.btn.btn-warning.btn-lg(href='#draw') Draw
+						br
+						div#myBoard
+						br
+						div.alert.alert-info
+							p
+					div.col-md-4
+						h1
+						br
+						label Status:
+						h1#status
+						br
+						label FEN:
+						div#fen
+						br
+						label PGN:
+						div#pgn
+		block scripts			
+			script(src='//code.jquery.com/jquery-3.5.1.min.js')
+			script(src='//cdnjs.cloudflare.com/ajax/libs/web3/1.6.1/web3.min.js')
+			script(src='//unpkg.com/peerjs@1.3.1/dist/peerjs.min.js')
+			script(src='//unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js')
+			script(src='//cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js')
+			script(src='/assets/contracts/bet.js')
+			script(src='/assets/js/web3.js')
+			script(src='/assets/js/ayadhan.js')
