@@ -8,6 +8,10 @@ var blackSquareGrey = '#696969';
 var orientation = 'white';
 var onMoveCallback = null;
 var gameId;
+var squareClass = 'square-55d63'
+var squareToHighlight = null
+var colorToHighlight = null
+var $board = $('#myBoard')
 
 function removeGreySquares () {
   $('#myBoard .square-55d63').css('background', '')
@@ -56,6 +60,18 @@ function onDrop (source, target) {
   if (move === null) return 'snapback';
 
   updateStatus();
+
+  if (move.color === 'w') {
+    $board.find('.' + squareClass).removeClass('highlight-white')
+    $board.find('.square-' + move.from).addClass('highlight-white')
+    squareToHighlight = move.to
+    colorToHighlight = 'white'
+  } else {
+    $board.find('.' + squareClass).removeClass('highlight-black')
+    $board.find('.square-' + move.from).addClass('highlight-black')
+    squareToHighlight = move.to
+    colorToHighlight = 'black'
+  }
   
   // make random legal move for black
   if (game.turn() !== orientation[0]) {
@@ -141,6 +157,11 @@ function updateStatus() {
   $pgn.html(game.pgn().replace(/ ([0-9]+[.])/g, '<br/>$1'));
 }
 
+function onMoveEnd () {
+  $board.find('.square-' + squareToHighlight)
+    .addClass('highlight-' + colorToHighlight)
+}
+
 function createChessBoard() {
 	var config = {
 	  draggable: true,
@@ -152,6 +173,7 @@ function createChessBoard() {
 	  onMouseoutSquare: onMouseoutSquare,
 	  onMouseoverSquare: onMouseoverSquare,
 	  onSnapEnd: onSnapEnd,
+	  onMoveEnd: onMoveEnd,
 	  showNotaion: true,
 	};
 	board = Chessboard('myBoard', config);
