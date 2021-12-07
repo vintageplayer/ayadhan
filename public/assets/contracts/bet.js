@@ -270,6 +270,11 @@ var BetContract = {
       "events": {},
       "links": {},
       "address": "0x0d59a722D05fac4fc145502F12f8c0a364777e72"
+    },
+    "80001": {
+      "events": {},
+      "links": {},
+      "address": "0x43F4aBfa59be6b7b33c21f7C359459De13df19eC"
     }
   }
 };
