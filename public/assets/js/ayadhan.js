@@ -8,10 +8,8 @@ var blackSquareGrey = '#696969';
 var orientation = 'white';
 var onMoveCallback = null;
 var gameId;
-var squareClass = 'square-55d63'
-var squareToHighlight = null
-var colorToHighlight = null
-var $board = $('#myBoard')
+var squareClass = 'square-55d63';
+var $board = $('#myBoard');
 
 function removeGreySquares () {
   $('#myBoard .square-55d63').css('background', '')
@@ -26,6 +24,11 @@ function greySquare (square) {
   }
 
   $square.css('background', background)
+}
+
+function removeHighlights (color) {
+  $board.find('.' + squareClass)
+    .removeClass('highlight-' + color);
 }
 
 function onDragStart (source, piece, position, orientation) {
@@ -62,15 +65,14 @@ function onDrop (source, target) {
   updateStatus();
 
   if (move.color === 'w') {
-    $board.find('.' + squareClass).removeClass('highlight-white')
-    $board.find('.square-' + move.from).addClass('highlight-white')
-    squareToHighlight = move.to
-    colorToHighlight = 'white'
+  	removeHighlights('white');
+
+    $board.find('.square-' + source).addClass('highlight-white')
+    $board.find('.square-' + target).removeClass('highlight-black').addClass('highlight-white')
   } else {
-    $board.find('.' + squareClass).removeClass('highlight-black')
-    $board.find('.square-' + move.from).addClass('highlight-black')
-    squareToHighlight = move.to
-    colorToHighlight = 'black'
+  	removeHighlights('black');
+    $board.find('.square-' + source).addClass('highlight-black')
+    $board.find('.square-' + target).removeClass('highlight-white').addClass('highlight-black')
   }
   
   // make random legal move for black
@@ -157,11 +159,6 @@ function updateStatus() {
   $pgn.html(game.pgn().replace(/ ([0-9]+[.])/g, '<br/>$1'));
 }
 
-function onMoveEnd () {
-  $board.find('.square-' + squareToHighlight)
-    .addClass('highlight-' + colorToHighlight)
-}
-
 function createChessBoard() {
 	var config = {
 	  draggable: true,
@@ -173,7 +170,6 @@ function createChessBoard() {
 	  onMouseoutSquare: onMouseoutSquare,
 	  onMouseoverSquare: onMouseoverSquare,
 	  onSnapEnd: onSnapEnd,
-	  onMoveEnd: onMoveEnd,
 	  showNotaion: true,
 	};
 	board = Chessboard('myBoard', config);
