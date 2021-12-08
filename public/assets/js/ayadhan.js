@@ -13,6 +13,16 @@ var $board = $('#myBoard');
 var drawRequested = false;
 var gameOver = false;
 
+var peer = null;
+var peerId = null;
+var conn = null;
+var opponent = {
+	peerId: null
+};
+var turn = false;
+var ended = false;
+
+
 function removeGreySquares () {
   $('#myBoard .square-55d63').css('background', '')
 }
@@ -183,15 +193,6 @@ function createChessBoard() {
 };
 
 (function() {
-	var peer = null;
-	var peerId = null;
-	var conn = null;
-	var opponent = {
-		peerId: null
-	};
-	var turn = false;
-	var ended = false;
-
 	function requestDraw() {
 		drawRequested = true;
 		sendData(['DrawRequest']);
@@ -215,8 +216,10 @@ function createChessBoard() {
 
 	function begin() {
 		conn.on('data', function(data) {
+			console.log('Got Data: ');
+			console.log(data);
 			if(data[0] === 'move'){
-				onDrop(data[0], data[1]);
+				onDrop(data[1], data[2]);
 			} else if (data[0] === 'OpponentResigned') {
 				opponentResigned();
 			} else if (data[0] === 'DrawRequest') {
@@ -251,7 +254,9 @@ function createChessBoard() {
 	}
 
 	function sendData(data) {
-		conn.send(data)
+		conn.send(data);
+		console.log('Sent Data: ');
+		console.log(data);
 	}
 
 	function initialize() {
