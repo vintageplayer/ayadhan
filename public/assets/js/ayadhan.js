@@ -10,6 +10,8 @@ var onMoveCallback = null;
 var gameId;
 var squareClass = 'square-55d63';
 var $board = $('#myBoard');
+var drawRequested = false;
+var gameOver = false;
 
 function removeGreySquares () {
   $('#myBoard .square-55d63').css('background', '')
@@ -33,7 +35,7 @@ function removeHighlights (color) {
 
 function onDragStart (source, piece, position, orientation) {
   // do not pick up pieces if the game is over
-  if (game.game_over()) return false;
+  if (game.game_over() || gameOver) return false;
 
   // only pick up pieces for White
   if ((game.turn() === 'w' && piece.search(/^b/) !== -1) || (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
@@ -77,7 +79,7 @@ function onDrop (source, target) {
   
   // make random legal move for black
   if (game.turn() !== orientation[0]) {
-  	onMoveCallback([source, target]);
+  	onMoveCallback(['move', source, target]);
 	  if (game.in_checkmate()) {
 	    if (orientation[0]=='w')
 	    	endBet(2);
@@ -94,7 +96,7 @@ function onDrop (source, target) {
 }
 
 function onMouseoverSquare (square, piece) {
-  if (game.turn() !== orientation[0]) {
+  if (game.turn() !== orientation[0] || gameOver) {
     return false
   }
 
@@ -126,6 +128,12 @@ function onSnapEnd () {
   board.position(game.fen());
 }
 
+function setStatusMessage(status) {
+  $status.html(status);
+  $fen.html(game.fen());
+  $pgn.html(game.pgn().replace(/ ([0-9]+[.])/g, '<br/>$1'));
+}
+
 function updateStatus() {
   var status = ''
 
@@ -154,9 +162,7 @@ function updateStatus() {
     }
   }
 
-  $status.html(status);
-  $fen.html(game.fen());
-  $pgn.html(game.pgn().replace(/ ([0-9]+[.])/g, '<br/>$1'));
+  setStatusMessage(status);
 }
 
 function createChessBoard() {
@@ -186,10 +192,50 @@ function createChessBoard() {
 	var turn = false;
 	var ended = false;
 
+	function requestDraw() {
+		drawRequested = true;
+		sendData(['DrawRequest']);
+	}
+
+	function resign() {
+		gameOver = true;
+		sendData(['OpponentResigned']);
+		setStatusMessage("Game Over! You resigned.");
+	}
+
+	function opponentResigned() {
+		gameOver = true;
+		alert('Opponent Resigned');
+		if (orientation[0]=='w')
+			endBet(2);
+		else
+			endBet(1);
+		setStatusMessage("Game Over! Opponent resigned.");
+	}
+
 	function begin() {
 		conn.on('data', function(data) {
-			console.log(data);
-			onDrop(data[0], data[1]);
+			if(data[0] === 'move'){
+				onDrop(data[0], data[1]);
+			} else if (data[0] === 'OpponentResigned') {
+				opponentResigned();
+			} else if (data[0] === 'DrawRequest') {
+				if (confirm('Opponent Request for Draw. Do you accept?')) {
+					gameOver = true;
+					sendData(['DrawAccepted']);
+					setStatusMessage("Players Agreed for a Draw!");
+				} else {
+					sendData(['DrawRejected']);
+				}
+			} else if (data[0] === 'DrawAccepted' && drawRequested) {
+				gameOver = true;
+				alert('Draw Request Accepted!');
+				setStatusMessage("Players Agreed for a Draw!");
+				endBet(0);
+			} else if (data[0] === 'DrawRejected' && drawRequested) {
+				drawRequested = false;
+				alert('Draw Request Declined!');
+			}
 		});
 
 		conn.on('close', function() {
@@ -298,9 +344,21 @@ function createChessBoard() {
 		event.preventDefault();
 		start();
 	});
+
 	$('a[href="#join"]').on('click', function (event)  {
 		event.preventDefault()
 		join();
-	})
-	
+	});
+
+	$('a[href="#resign"]').on('click', function (event) {
+		console.log('Resigning Game!');
+		event.preventDefault();
+		resign();
+	});
+
+	$('a[href="#draw"]').on('click', function (event)  {
+		console.log('Requesting for draw');
+		event.preventDefault();
+		requestDraw();
+	});	
 })();
