@@ -257,8 +257,8 @@ function createChessBoard() {
 	function initialize() {
 		console.log('Creating peer connection');
 		peer = new Peer('', {
-			host: location.hostname,
-			port: location.port || (location.protocol === 'https:' ? 443 : 80),
+			host: 'https://ayadhan.herokuapp.com/',
+			port: 443,
 			path: '/peerjs',
 			debug: 3
 		})
