@@ -216,7 +216,7 @@ function createChessBoard() {
 	function begin() {
 		conn.on('data', function(data) {
 			if(data[0] === 'move'){
-				onDrop(data[0], data[1]);
+				onDrop(data[1], data[2]);
 			} else if (data[0] === 'OpponentResigned') {
 				opponentResigned();
 			} else if (data[0] === 'DrawRequest') {
