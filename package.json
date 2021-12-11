@@ -11,6 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "express": "^4.17.1",
+    "ipfs-car": "^0.6.0",
     "jade": "^1.11.0",
     "peer": "^0.6.1"
   }
