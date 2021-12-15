@@ -334,18 +334,18 @@ function createChessBoard() {
 		$('#game .alert p').text('');
 
 		console.log('Creating peer connection');
-		peer = new Peer('', {
-			host: location.hostname,
-			port: location.port || (location.protocol === 'https:' ? 443 : 80),
-			path: '/peerjs',
-			debug: 3
-		})
 		// peer = new Peer('', {
-		// 	host: 'ayadhan.herokuapp.com',
-		// 	port: 443,
+		// 	host: location.hostname,
+		// 	port: location.port || (location.protocol === 'https:' ? 443 : 80),
 		// 	path: '/peerjs',
 		// 	debug: 3
 		// })
+		peer = new Peer('', {
+			host: 'ayadhan.herokuapp.com',
+			port: 443,
+			path: '/peerjs',
+			debug: 3
+		})
 		peer.on('open', function(id) {
 			peerId = id
 		})
