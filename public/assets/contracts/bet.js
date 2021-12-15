@@ -233,6 +233,11 @@ var BetContract = {
 								"internalType": "bool",
 								"name": "isSigned",
 								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "latestSignedMove",
+								"type": "uint256"
 							}
 						],
 						"internalType": "struct Bet.Game",
@@ -241,6 +246,47 @@ var BetContract = {
 					}
 				],
 				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes",
+						"name": "rawMessage",
+						"type": "bytes"
+					}
+				],
+				"name": "getMessageParts",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "gameId",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "moveNo",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint8",
+								"name": "gameStatus",
+								"type": "uint8"
+							},
+							{
+								"internalType": "bytes",
+								"name": "fen_string",
+								"type": "bytes"
+							}
+						],
+						"internalType": "struct Bet.MessageParts",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "pure",
 				"type": "function"
 			},
 			{
@@ -262,26 +308,39 @@ var BetContract = {
 						"internalType": "uint256",
 						"name": "gameId",
 						"type": "uint256"
+					}
+				],
+				"name": "processWinner",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "gameId",
+						"type": "uint256"
 					},
 					{
-						"internalType": "bytes32",
+						"internalType": "bytes",
 						"name": "_previousMessage",
-						"type": "bytes32"
+						"type": "bytes"
 					},
 					{
-						"internalType": "bytes32",
+						"internalType": "bytes",
 						"name": "_previousSignature",
-						"type": "bytes32"
+						"type": "bytes"
 					},
 					{
-						"internalType": "bytes32",
+						"internalType": "bytes",
 						"name": "_currentMessage",
-						"type": "bytes32"
+						"type": "bytes"
 					},
 					{
-						"internalType": "bytes32",
+						"internalType": "bytes",
 						"name": "_currentSignature",
-						"type": "bytes32"
+						"type": "bytes"
 					}
 				],
 				"name": "setSignedMessage",
@@ -306,6 +365,35 @@ var BetContract = {
 				"outputs": [],
 				"stateMutability": "payable",
 				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "data",
+						"type": "bytes"
+					},
+					{
+						"internalType": "bytes",
+						"name": "sig",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyMessage",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "pure",
+				"type": "function"
 			}
 		],
   "networks": {
@@ -317,7 +405,7 @@ var BetContract = {
     "80001": {
       "events": {},
       "links": {},
-      "address": "0x7daD87C073407d4cc84e31B6F57b588BcF25Eb39"
+      "address": "0x60CE6BF65cCde54D81958C92836f1879600b7eE8"
     }
   }
 };
