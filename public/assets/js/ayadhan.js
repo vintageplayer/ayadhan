@@ -271,9 +271,35 @@ function createChessBoard() {
 		})
 	}
 
+	function hex2a(hexx) {
+	    var hex = hexx.toString();//force conversion
+	    var str = '';
+	    for (var i = 0; i < hex.length; i += 2)
+	        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+	    return str;
+	}
+
+
 	function sendData(data) {
+		let statusCodeLookup = {
+			'move': 0,
+			'DrawRequest': 1,
+			'DrawAccepted': 1,
+			'DrawRejected': 6,
+			'OpponentResigned': 5,
+		};
 		if (signMoves) {
-			let message_to_sign = gameId+ '|' + data[0] + '|' + game.pgn();
+			let gameIdHex = ('0'.repeat(64) + parseInt(gameId).toString(16)).slice(-64)
+			let moveNoHex = ('0'.repeat(64) + parseInt(game.history().length).toString(16)).slice(-64)
+			let gameStatusHex = ( '00' + statusCodeLookup[data[0]].toString(16) ).slice(-2);
+			fen_string = game.fen();
+			var ascii= fen_string.split('').map(function(itm){
+			    return itm.charCodeAt(0).toString(16);
+			});
+			fenHex = ascii.join("")
+			// Recover Using - hex2a(messageParts['fenHex'].slice(2))
+			message_to_sign = '0x' + gameIdHex+moveNoHex + gameStatusHex + fenHex;
+			// let message_to_sign = gameId+ '|' + data[0] + '|' + game.pgn();
 			web3.eth.personal.sign(message_to_sign, account, (err, signature) => {
 			 if (err)
 			 		return reject(err);
