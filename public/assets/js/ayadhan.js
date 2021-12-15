@@ -8,6 +8,7 @@ var blackSquareGrey = '#696969';
 var orientation = 'white';
 var onMoveCallback = null;
 var gameId;
+var signMoves = false;
 var squareClass = 'square-55d63';
 var $board = $('#myBoard');
 var drawRequested = false;
@@ -175,10 +176,21 @@ function updateStatus() {
   setStatusMessage(status);
 }
 
+function pieceTheme (piece) {
+  // wikipedia theme for white pieces
+  if (piece.search(/w/) !== -1) {
+    return '/assets/img/chesspieces/game2art/'+piece+'.png'
+  }
+
+  // alpha theme for black pieces
+  return '/assets/img/chesspieces/basic/'+piece+'.png'
+}
+
 function createChessBoard() {
 	var config = {
 	  draggable: true,
-	  pieceTheme: '/assets/img/chesspieces/basic/{piece}.png',
+	  // pieceTheme: '/assets/img/chesspieces/basic/{piece}.png',
+	  pieceTheme: pieceTheme,
 	  position: 'start',
 	  orientation: orientation,
 	  onDragStart: onDragStart,
@@ -192,7 +204,7 @@ function createChessBoard() {
 	updateStatus();
 };
 
-(function() {
+// (function() {
 	function requestDraw() {
 		drawRequested = true;
 		sendData(['DrawRequest']);
@@ -215,9 +227,15 @@ function createChessBoard() {
 	}
 
 	function begin() {
-		conn.on('data', function(data) {
-			console.log('Got Data: ');
-			console.log(data);
+		conn.on('data', function(message) {
+			console.log('Got Message: ');
+			console.log(message);
+
+			if (signMoves) {
+				$('#game .alert p').text('Last Message: '+message[1]).append('<br/> Signature: ' + message[2]);
+			}
+
+			data = message[0];
 			if(data[0] === 'move'){
 				onDrop(data[1], data[2]);
 			} else if (data[0] === 'OpponentResigned') {
@@ -242,9 +260,9 @@ function createChessBoard() {
 		});
 
 		conn.on('close', function() {
-			if(!ended) {
-				$('#game .alert p').text('Opponent forfeited!')
-			}
+			// if(!ended) {
+			// 	$('#game .alert p').text('Opponent forfeited!')
+			// }
 			turn = false
 		})
 		peer.on('error', function(err) {
@@ -254,19 +272,52 @@ function createChessBoard() {
 	}
 
 	function sendData(data) {
-		conn.send(data);
-		console.log('Sent Data: ');
-		console.log(data);
+		if (signMoves) {
+			let message_to_sign = gameId+ '|' + data[0] + '|' + game.pgn();
+			web3.eth.personal.sign(message_to_sign, account, (err, signature) => {
+			 if (err)
+			 		return reject(err);
+			 	// return { account, signature };
+				conn.send([data, message_to_sign, signature]);
+				console.log('Sent Signed Message: ');
+				console.log([data, message_to_sign, signature]);
+			});
+		} else {
+			conn.send([data]);
+		}
 	}
 
 	function initialize() {
+		board = null;
+		game = new Chess();		
+		gameId;
+		signMoves = false;
+		squareClass = 'square-55d63';		
+		drawRequested = false;
+		gameOver = false;
+		peer = null;
+		peerId = null;
+		conn = null;
+		opponent = {
+			peerId: null
+		};
+		turn = false;
+		ended = false;
+		$('#game .alert p').text('');
+
 		console.log('Creating peer connection');
 		peer = new Peer('', {
-			host: 'ayadhan.herokuapp.com',
-			port: 443,
+			host: location.hostname,
+			port: location.port || (location.protocol === 'https:' ? 443 : 80),
 			path: '/peerjs',
 			debug: 3
 		})
+		// peer = new Peer('', {
+		// 	host: 'ayadhan.herokuapp.com',
+		// 	port: 443,
+		// 	path: '/peerjs',
+		// 	debug: 3
+		// })
 		peer.on('open', function(id) {
 			peerId = id
 		})
@@ -287,19 +338,20 @@ function createChessBoard() {
 	}
 
 	function start() {
-		betAmount = parseInt(document.getElementById("betAmount").value);
-		if (betAmount <= 0){
+		betAmount = parseFloat(document.getElementById("betAmount").value);
+		if (betAmount < 0.001){
 			alert('Invalid Bet betAmount');
 			return;
 		}
 		initialize();
 		peer.on('open', function() {
-			betAmount = parseInt(document.getElementById("betAmount").value);
-			betInstance.methods.createGame(1639722618).send({from: account, value: betAmount}).then( (receipt) => {
-				// console.log(receipt);
+			betAmount = parseFloat(document.getElementById("betAmount").value) * 1e18;
+			signMoves =  document.getElementById('signMoves').checked;
+			betInstance.methods.createGame(1639722618, signMoves).send({from: account, value: betAmount}).then( (receipt) => {
+				console.log(receipt);
 				gameId = receipt.events.GameCreated.returnValues.gameId;
 				var inviteCode = gameId+'_' +peerId;
-				$('#game .alert p').text('Waiting for opponent').append($('<span class="pull-right"></span>').text('Peer ID: '+inviteCode));
+				$('#game .alert p').text('Invite Code ID: '+inviteCode);
 				$('#game').show().siblings('section').hide();
 				orientation = 'black';
 				createChessBoard();
@@ -313,7 +365,7 @@ function createChessBoard() {
 			}
 			conn = c;
 			turn = true;
-			$('#game .alert p').text('Your move!');
+			// $('#game .alert p').text('Your move!');
 			begin()
 		})
 	}
@@ -321,18 +373,20 @@ function createChessBoard() {
 	function join() {
 		initialize();
 		peer.on('open', function() {
-			var inviteCode = prompt("Enter invite code:");
+			// var inviteCode = prompt("Enter invite code:");
+			let inviteCode = document.getElementById("inviteCode").value;
 			gameId = inviteCode.split('_')[0];
 			var destId = inviteCode.split('_').slice(1).join('_');
 			betInstance.methods.getGameDetails(gameId).call().then( (gameDetails) => {
 				betAmount = parseInt(gameDetails.amount);
+				signMoves = gameDetails.isSigned;
 				betInstance.methods.acceptGame(gameId).send({from: account, value: betAmount}).then( (receipt) => {
 					conn = peer.connect(destId, {
 						reliable: true
 					});
 					conn.on('open', function() {
 						opponent.peerId = destId;
-						$('#game .alert p').text("Waiting for opponent's move");
+						// $('#game .alert p').text("Waiting for opponent's move");
 						$('#game').show().siblings('section').hide();
 						orientation = 'white';
 						createChessBoard();
@@ -347,11 +401,28 @@ function createChessBoard() {
 	$('a[href="#start"]').on('click', function (event) {
 		console.log('Starting Game!');
 		event.preventDefault();
+		loadWeb3();
 		start();
 	});
 
+	$('a[href="#selectNFT"]').on('click', function (event) {
+		console.log('Switching to NFT Gallery!');
+		event.preventDefault();
+		$('#nftGallery').show().siblings('section').hide();
+		showNFTs();
+	});
+
+	$('a[href="#Home"]').on('click', function (event) {
+		console.log('Switching to Home!');
+		event.preventDefault();
+		$('#menu').show().siblings('section').hide();
+	});
+
+
+
 	$('a[href="#join"]').on('click', function (event)  {
-		event.preventDefault()
+		event.preventDefault();
+		loadWeb3();
 		join();
 	});
 
@@ -366,4 +437,4 @@ function createChessBoard() {
 		event.preventDefault();
 		requestDraw();
 	});	
-})();
+// })();

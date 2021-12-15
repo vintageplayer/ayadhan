@@ -2,7 +2,7 @@ doctype html
 html(lang='en')
 	head
 		title Bet & Chess
-		meta(name='viewport' content='width=640px, initial-scale=1')
+		meta(name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no')
 
 		block styles
 			link(rel='stylesheet' href='//fonts.googleapis.com/css?family=Gloria+Hallelujah|Alef')
@@ -20,14 +20,30 @@ html(lang='en')
 					div.no-support(style='display: none;')
 						div.alert.alert-warning
 							p Unfortunately, your web browser does not <a href="http://iswebrtcreadyyet.com">support WebRTC</a>
-					div
-						form
-							div.form-group
-								label Bet Wei: 
-								input.form-controrl#betAmount(type="number", min="1" value=1)
-						a.btn.btn-primary.btn-lg(href='#start') Start
-						| &nbsp;
-						a.btn.btn-default.btn-lg(href='#join') Join
+					div.row
+						div.col-md-4
+							h2 Start Challenge
+							form
+								div.form-group
+									label Bet (Ether/Matic): &nbsp;
+									input.form-controrl#betAmount(type="number", min="0.001" value="0.01" step="0.001")
+									br
+									input.form-controrl#signMoves(type="checkbox")
+									label &nbsp; Sign Each Move
+							a.btn.btn-primary.btn-lg(href='#start') Start
+						div.col-md-4
+						div.col-md-4
+							h2 Accept Challenge
+							form
+								div.form-group
+									label Enter Invite Code: &nbsp;
+									input.form-controrl#inviteCode(type="text")
+							a.btn.btn-primary.btn-lg(href='#join') Join
+					div.row
+						br
+						br
+						br					
+						a.btn.btn-default.btn-lg(href='#selectNFT') Select Pieces
 
 		section#game(style='display: none;')
 			div.container
@@ -35,12 +51,14 @@ html(lang='en')
 					div.col-md-2
 					div.col-md-5
 						div.row
-							div.col-md-7
+							div.col-md-6
 								h1 Play Chess
-							div.col-md-5
+							div.col-md-6
+								a.btn.btn-success.btn-lg(href='#Home') Home
+								| &nbsp;
 								a.btn.btn-danger.btn-lg(href='#resign') Resign
 								| &nbsp;
-								a.btn.btn-warning.btn-lg(href='#draw') Draw
+								a.btn.btn-warning.btn-lg(href='#draw') Draw								
 						br
 						div#myBoard
 						br
@@ -57,12 +75,24 @@ html(lang='en')
 						br
 						label PGN:
 						div#pgn
+		section#nftGallery(style='display: none;')			
+			div.container
+				br
+				div.row
+					div.col-md-10
+					div.col-md-2
+						a.btn.btn-success.btn-lg(href='#Home') Home
+				br
+				br						
+				div.row#nftListing
 		block scripts			
 			script(src='//code.jquery.com/jquery-3.5.1.min.js')
 			script(src='//cdnjs.cloudflare.com/ajax/libs/web3/1.6.1/web3.min.js')
+			script(src='//unpkg.com/moralis/dist/moralis.js')
 			script(src='//unpkg.com/peerjs@1.3.1/dist/peerjs.min.js')
 			script(src='//unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js')
 			script(src='//cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js')
 			script(src='/assets/contracts/bet.js')
 			script(src='/assets/js/web3.js')
 			script(src='/assets/js/ayadhan.js')
+			script(src='/assets/js/moralis.js')
