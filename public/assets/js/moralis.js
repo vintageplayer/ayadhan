@@ -23,6 +23,83 @@ function fetchNFTMetadata(NFTs) {
 	return Promise.all(promises);
 }
 
+function renderDummyCollections() {
+	const parent = document.getElementById("collections");
+	const collections = [
+		{
+			'name': 'wikipedia',
+			'version_suffix': ''
+		},
+		{
+			'name': 'basic',
+			'version_suffix': ''
+		},
+		{
+			'name': 'game2art_Idle_1',
+			'version_suffix': ''
+		},
+		{
+			'name': 'game2art_Dead_1',
+			'version_suffix': ''
+		},
+		{
+			'name': 'game2art_Dead_2',
+			'version_suffix': ''
+		},
+		{
+			'name': 'game2art_Dead_3',
+			'version_suffix': ''
+		},
+		{
+			'name': 'game2art_Dead_4',
+			'version_suffix': ''
+		},
+		{
+			'name': 'game2art_Dead_6',
+			'version_suffix': ''
+		},
+		{
+			'name': 'game2art_Dead_7',
+			'version_suffix': ''
+		},
+		{
+			'name': 'game2art_Dead_8',
+			'version_suffix': ''
+		}
+	];
+	for (let i =0; i<collections.length; i++) {
+		collectionRow = document.createElement("tr");
+		collectionRow.innerHTML =  `
+			<th>${i}</th>
+			<td>${collections[i].name}</td>
+			<td>White${collections[i].version_suffix}</td>
+			<td><img src="/assets/img/chesspieces/${collections[i].name}/wK.png" style="width: 80px; height: 80px"></td>
+			<td><img src="/assets/img/chesspieces/${collections[i].name}/wQ.png" style="width: 80px; height: 80px"></td>
+			<td><img src="/assets/img/chesspieces/${collections[i].name}/wR.png" style="width: 80px; height: 80px"></td>
+			<td><img src="/assets/img/chesspieces/${collections[i].name}/wB.png" style="width: 80px; height: 80px"></td>
+			<td><img src="/assets/img/chesspieces/${collections[i].name}/wN.png" style="width: 80px; height: 80px"></td>
+			<td><img src="/assets/img/chesspieces/${collections[i].name}/wP.png" style="width: 80px; height: 80px"></td>
+			<button onclick="document.getElementById('whiteSet').value = '${collections[i].name}';" class="btn btn-danger btn-lg">Select</button>
+
+			`;
+		parent.children[0].children[1].appendChild(collectionRow);
+		collectionRow = document.createElement("tr");
+		collectionRow.innerHTML =  `
+			<th>${i}</th>
+			<td>${collections[i].name}</td>
+			<td>Black${collections[i].version_suffix}</td>
+			<td><img src="/assets/img/chesspieces/${collections[i].name}/bK.png" style="width: 80px; height: 80px"></td>
+			<td><img src="/assets/img/chesspieces/${collections[i].name}/bQ.png" style="width: 80px; height: 80px"></td>
+			<td><img src="/assets/img/chesspieces/${collections[i].name}/bR.png" style="width: 80px; height: 80px"></td>
+			<td><img src="/assets/img/chesspieces/${collections[i].name}/bB.png" style="width: 80px; height: 80px"></td>
+			<td><img src="/assets/img/chesspieces/${collections[i].name}/bN.png" style="width: 80px; height: 80px"></td>
+			<td><img src="/assets/img/chesspieces/${collections[i].name}/bP.png" style="width: 80px; height: 80px"></td>
+			<button onclick="document.getElementById('blackSet').value = '${collections[i].name}';" class="btn btn-warning btn-lg">Select</button>
+			`;
+		parent.children[0].children[1].appendChild(collectionRow);
+	}	
+}
+
 function renderNFT(NFTs) {
 	const parent = document.getElementById("nftListing")
 	console.log(NFTs);
@@ -46,6 +123,7 @@ function renderNFT(NFTs) {
 }
 
 function showNFTs() {
+	renderDummyCollections();
 	let NFTMetadata = [
 		{
 			"metadata": {

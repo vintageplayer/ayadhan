@@ -178,12 +178,14 @@ function updateStatus() {
 
 function pieceTheme (piece) {
   // wikipedia theme for white pieces
+  const blackSet = document.getElementById('blackSet').value;
+  const whiteSet = document.getElementById('whiteSet').value;
   if (piece.search(/w/) !== -1) {
-    return '/assets/img/chesspieces/game2art/'+piece+'.png'
+    return `/assets/img/chesspieces/${blackSet}/${piece}.png`
   }
 
   // alpha theme for black pieces
-  return '/assets/img/chesspieces/basic/'+piece+'.png'
+  return `/assets/img/chesspieces/${whiteSet}/${piece}.png`
 }
 
 function createChessBoard() {
