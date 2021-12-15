@@ -28,7 +28,7 @@ Since both the messages are verifiably signed, the latest game state is irrefuta
 A person can manipulate only their latest move which the opponent can challenge withthin the timeout period (currently one day).
 
 ## Architecture
-![Architecture Image ](https://github.com/vintageplayer/ZILNFTIndexMarketplace/blob/master/Ayadhan_architecture.png?raw=true)
+![Architecture Image ](https://github.com/vintageplayer/ayadhan/blob/master/Ayadhan_architecture.png?raw=true)
 
 The app is hosted on StackOS and heroku.
 The NFTs and it's metadata are stored in IPFS.
