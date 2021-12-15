@@ -298,7 +298,7 @@ function createChessBoard() {
 			});
 			fenHex = ascii.join("")
 			// Recover Using - hex2a(messageParts['fenHex'].slice(2))
-			message_to_sign = '0x' + gameIdHex+moveNoHex + gameStatusHex + fenHex;
+			message_to_sign = web3.utils.keccak256('0x' + gameIdHex+moveNoHex + gameStatusHex + fenHex);
 			// let message_to_sign = gameId+ '|' + data[0] + '|' + game.pgn();
 			web3.eth.personal.sign(message_to_sign, account, (err, signature) => {
 			 if (err)
