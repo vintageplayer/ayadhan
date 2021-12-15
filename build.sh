@@ -1,1 +1,1 @@
-docker build . -t vintageplayer/ayadhan:2.0.0
+docker build . -t vintageplayer/ayadhan:2.0.1
