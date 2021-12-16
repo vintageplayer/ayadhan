@@ -3,10 +3,15 @@ pragma solidity ^0.8.10;
 
 import './Verifier.sol';
 import './utils.sol';
+import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 
-contract Bet {
+contract Bet is VRFConsumerBase {
 
     address issuer;
+    bytes32 internal keyHash;
+    uint256 internal fee;
+    
+    uint256 public randomResult;
     
     enum GameStatus {CREATED, LOCKED, FINISHED, CANCELLED}
     enum MessageGameStatus {MOVEV, DRAW, WIN_MOVE, LOST, WON, RESIGN}
@@ -20,6 +25,7 @@ contract Bet {
         GameStatus status;
         bool isSigned;
         uint latestSignedMove;
+        bool creatorStartsAsBlack;
     }
 
     struct MoveSigns {
@@ -44,6 +50,7 @@ contract Bet {
     mapping(uint=>Game) games;
     mapping(address=>uint[]) userGames;
     mapping(uint=>MoveSigns) latestGameSigns;
+    mapping(bytes32 => uint) requestingVRFGameId;
 
     event GameCreated(uint gameId, address creator, uint amount);
     event GameAccepted(uint gameId, address acceptor, uint amount);
@@ -51,8 +58,30 @@ contract Bet {
     event GameDraw(uint gameId, address player1, address player2, uint amount);
     event GameCancelled(uint gameId, address creator, uint amount);
 
-    constructor() {
+    constructor() VRFConsumerBase(0x8C7382F9D8f56b33781fE506E897a4F1e2d17255, 0x326C977E6efc84E512bB9C30f76E30c160eD06FB) {
         issuer = msg.sender;
+        keyHash = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
+        fee = 0.0001 * 10 ** 18; // 0.1 LINK (Varies by network)
+    }
+
+    /** 
+     * Requests randomness 
+     */
+    function getRandomNumber() internal returns (bytes32 requestId) {
+        require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
+        return requestRandomness(keyHash, fee);
+    }
+
+    /**
+     * Callback function used by VRF Coordinator
+     */
+    function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
+        uint gameId = requestingVRFGameId[requestId];
+        if (randomness%2==0) {
+            games[gameId].creatorStartsAsBlack = true;
+        } else {
+            games[gameId].creatorStartsAsBlack = false;
+        }
     }
 
     function createGame(uint _acceptDeadline, bool _isSigned)
@@ -68,6 +97,8 @@ contract Bet {
         games[game_count].status = GameStatus.CREATED;
         games[game_count].isSigned = _isSigned;
         userGames[msg.sender].push(game_count);
+        bytes32 requestId = getRandomNumber();
+        requestingVRFGameId[requestId] = game_count;
         emit GameCreated(game_count, msg.sender, msg.value);
         return game_count;
     }
