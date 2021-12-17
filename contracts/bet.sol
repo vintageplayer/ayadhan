@@ -4,12 +4,20 @@ pragma solidity ^0.8.10;
 import './Verifier.sol';
 import './utils.sol';
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
+import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 
-contract Bet is VRFConsumerBase {
+contract Bet is VRFConsumerBase, ChainlinkClient {
+    using Chainlink for Chainlink.Request;
+
+    uint256 public volume;
+    address private oracle;
+    bytes32 private jobId;
+    uint256 private chainLinkGetRequestFee;
+    string apiBaseUrl = "https://ayadhan.herokuapp.com/validate";
 
     address issuer;
     bytes32 internal keyHash;
-    uint256 internal fee;
+    uint256 internal chainLinkVrfFee;
     
     uint256 public randomResult;
     
@@ -51,6 +59,7 @@ contract Bet is VRFConsumerBase {
     mapping(address=>uint[]) userGames;
     mapping(uint=>MoveSigns) latestGameSigns;
     mapping(bytes32 => uint) requestingVRFGameId;
+    mapping(bytes32 => uint) requestingAPIGameId;
 
     event GameCreated(uint gameId, address creator, uint amount);
     event GameAccepted(uint gameId, address acceptor, uint amount);
@@ -58,18 +67,25 @@ contract Bet is VRFConsumerBase {
     event GameDraw(uint gameId, address player1, address player2, uint amount);
     event GameCancelled(uint gameId, address creator, uint amount);
 
+    // ToDo - Remove hardcoded values to parameterized
     constructor() VRFConsumerBase(0x8C7382F9D8f56b33781fE506E897a4F1e2d17255, 0x326C977E6efc84E512bB9C30f76E30c160eD06FB) {
         issuer = msg.sender;
         keyHash = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
-        fee = 0.0001 * 10 ** 18; // 0.1 LINK (Varies by network)
+        chainLinkVrfFee = 0.0001 * 10 ** 18; // 0.1 LINK (Varies by network)
+
+        // Setting Values for Get Request        
+        setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
+        oracle = 0x0bDDCD124709aCBf9BB3F824EbC61C87019888bb;
+        jobId = "52d54fc095ad4327a092354b31ee1d3e";
+        chainLinkGetRequestFee = 0.01 * 10 ** 18; // (Varies by network and job)
     }
 
     /** 
      * Requests randomness 
      */
     function getRandomNumber() internal returns (bytes32 requestId) {
-        require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
-        return requestRandomness(keyHash, fee);
+        require(LINK.balanceOf(address(this)) >= chainLinkVrfFee, "Not enough LINK - fill contract with faucet");
+        return requestRandomness(keyHash, chainLinkVrfFee);
     }
 
     /**
@@ -81,6 +97,80 @@ contract Bet is VRFConsumerBase {
             games[gameId].creatorStartsAsBlack = true;
         } else {
             games[gameId].creatorStartsAsBlack = false;
+        }
+        delete requestingVRFGameId[requestId];
+    }
+
+    /**
+     * Create a Chainlink request to retrieve API response, find the target
+     * data, then multiply by 1000000000000000000 (to remove decimal places from data).
+     */
+    function makeApiCall(string memory url) internal returns (bytes32 requestId) 
+    {
+        Chainlink.Request memory request = buildChainlinkRequest(jobId, address(this), this.fulfill.selector);        
+        request.add("get", url);
+        request.add("path", "comparisonCode");
+        return sendChainlinkRequestTo(oracle, request, chainLinkGetRequestFee);
+    }
+    
+    /**
+     * Receive the response in the form of uint256
+        Codes:
+        1 - Previous FEN Not Valid
+        2 - Current FEN Not Valid
+        3 - Current FEN not possible from Previous
+        4 - Both FENs are same, game not over
+        5 - Both FENs are same, It's a draw
+        6 - Both FENs are same, White Won
+        7 - Both FENs are same, Black Won
+        8 - FENs different, game not over
+        9 - FENs different, it's a draw
+        10 - FENs different, White Won
+        11 - FENs different, Black Won
+     */ 
+    function fulfill(bytes32 _requestId, uint256 comparisonCode) public recordChainlinkFulfillment(_requestId)
+    {
+        uint gameId = requestingAPIGameId[_requestId];
+        address player1 = games[gameId].player1;
+        uint8 _result = 3;
+        if (comparisonCode == 1) {
+            _result = 2;
+            if (latestGameSigns[gameId].enteredBy == player1) {
+                _result = 1;
+            }
+        } else if (comparisonCode == 2 || comparisonCode == 3) {
+            _result = 1;
+            if (latestGameSigns[gameId].enteredBy == player1) {
+                _result = 2;
+            }
+        } else if (comparisonCode == 5 || comparisonCode == 9) {
+            _result = 0;
+        } else if (comparisonCode == 6 || comparisonCode == 10) {
+            _result = 1;
+            if (games[gameId].creatorStartsAsBlack == true) {
+                _result = 2;
+            }
+        } else if (comparisonCode == 6 || comparisonCode == 10) {
+            _result = 2;
+            if (games[gameId].creatorStartsAsBlack == true) {
+                _result = 1;
+            }
+        }
+
+        if (_result < 3) {
+            games[gameId].status = GameStatus.FINISHED;
+            games[gameId].result = _result;
+            if (_result == 1) {
+                payable(games[gameId].player1).transfer(2*games[gameId].amount);
+                emit GameFinished(gameId, games[gameId].player1, 2*games[gameId].amount);
+            } else if (_result == 2) {
+                payable(games[gameId].player2).transfer(2*games[gameId].amount);
+                emit GameFinished(gameId, games[gameId].player2, 2*games[gameId].amount);
+            } else if (_result == 0){
+                payable(games[gameId].player1).transfer(games[gameId].amount);
+                payable(games[gameId].player2).transfer(games[gameId].amount);
+                emit GameDraw(gameId, games[gameId].player1, games[gameId].player2, games[gameId].amount);
+            }
         }
     }
 
@@ -156,6 +246,22 @@ contract Bet is VRFConsumerBase {
         latestGameSigns[gameId].currentMessageParts = cMsgParts;
         latestGameSigns[gameId].nextMessageDeadline = block.timestamp + 86400000;
         latestGameSigns[gameId].enteredBy = msg.sender;
+    }
+
+    function challengeMoveEntry(uint gameId)
+    public
+    validGame(gameId)
+    validateGameStatus(gameId, GameStatus.LOCKED)
+    isPlayer(gameId)
+    {
+        require(games[gameId].isSigned == true, "Not a Signed Game!!");
+        require(games[gameId].latestSignedMove > 0, "No Move Made Yet in the game");
+
+        bytes memory prevFenHex = latestGameSigns[gameId].previousMessageParts.fen_string;
+        bytes memory curFenHex = latestGameSigns[gameId].currentMessageParts.fen_string;
+        string memory url = string(abi.encodePacked(apiBaseUrl, string(prevFenHex), string(curFenHex)));
+        bytes32 requestId = makeApiCall(url);
+        requestingAPIGameId[requestId] = gameId;
     }
 
 
