@@ -375,7 +375,7 @@ function createChessBoard() {
 		peer.on('open', function() {
 			betAmount = parseFloat(document.getElementById("betAmount").value) * 1e18;
 			signMoves =  document.getElementById('signMoves').checked;
-			betInstance.methods.createGame(1639722618, signMoves).send({from: account, value: betAmount}).then( (receipt) => {
+			betInstance.methods.createGame(parseInt(Date.now()/100 + 86400), signMoves).send({from: account, value: betAmount}).then( (receipt) => {
 				console.log(receipt);
 				gameId = receipt.events.GameCreated.returnValues.gameId;
 				var inviteCode = gameId+'_' +peerId;
