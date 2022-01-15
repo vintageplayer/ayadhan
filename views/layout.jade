@@ -10,7 +10,6 @@ html(lang='en')
 			link(rel='stylesheet' href='//cdnjs.cloudflare.com/ajax/libs/animate.css/3.4.0/animate.min.css')
 			link(rel='stylesheet' href='/assets/css/screen.css')
 			link(rel='stylesheet' href='//unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css')
-
 	body
 		section#menu
 			div.animated.bounceIn
@@ -42,8 +41,11 @@ html(lang='en')
 					div.row
 						br
 						br
-						br					
+						br
 						a.btn.btn-default.btn-lg(href='#selectNFT') Select Pieces
+					div.row
+						br
+						button.btn.btn-link.btn-lg(type="button", data-target='#aboutModal', data-toggle="modal") About
 
 		section#game(style='display: none;')
 			div.container
@@ -83,13 +85,13 @@ html(lang='en')
 					div.col-md-2
 						a.btn.btn-success.btn-lg(href='#Home') Home
 				br
-				br						
+				br
 				div.row#nftListing
 				label White Set:  &nbsp;
-				input#whiteSet(value="game2art", disabled)
+				input#whiteSet(value="basic", disabled)
 				br
 				label Black Set:  &nbsp;
-				input#blackSet(value="basic", disabled)				
+				input#blackSet(value="basic", disabled)
 				div.row#collections
 					table.table
 						thead
@@ -104,10 +106,50 @@ html(lang='en')
 								th(scope="col") Knight
 								th(scope="col") Pawn
 								th(scope="col") 
-						tbody				
+						tbody
+	div.modal.fade#aboutModal(tabindex="-1", role="dialog", aria-labelledby="aboutAyadhan", aria-hidden="true")
+		div.modal-dialog.modal-dialog-centered(role="document")
+			div.modal-content
+				div.modal-header
+					button.close(type="button", data-dismiss="modal", aria-label="Close")
+						span(aria-hidden="true") &times;
+					h3.modal-title#aboutAyadhanModalTitle About Ayadhan
+				div.modal-body
+					b Aya - Sanskrit chess move towards right
+					br
+					b	Dhan - Money
+					br
+					br
+					|	Ayadhan is a Dapp to bet and play chess between friends in an gas fee-efficient manner on-chain.
+					br
+					br
+					|	Detailed User Guide is being built currently.
+					br
+					b	Note: The dapp is in Beta mode and have a couple of cases which the user should avoid  currently:
+					br
+					|	1. Only Rinkeby and Polygon Mumbai Testnet are live right now.
+					br
+					|	2. Change in chain network is not auto-detected. Please re-load/refresh the page.
+					br
+					|	3. Leaving the game while in-progress is irrecoverable right now.
+					br
+					|	4. A game where 2nd player doesn't not join within 24 hours can be cancelled, but the site doesn't expose a button for it yet.
+					br
+					|	5. Please select signed message only when you want to sign each move to not use ayadhan server to store moves and send it smart contract.
+					br
+					a(href="https://www.loom.com/share/79f6f34b6792427ab48439c322ee673e") Short Video Tutorial
+					br
+					a(href="https://github.com/vintageplayer/ayadhan", target="_blank") Source
+					br
+					| Want to give feedback, support or contribute? Please reach out to me on 
+					a(href="https://twitter.com/le_adi_zindagi") twitter
+					|.
+				div.modal-footer
+					btn.btn.btn-secondary(type="button", data-dismiss="modal", target="_blank") Close
 
-		block scripts			
+		block scripts
 			script(src='//code.jquery.com/jquery-3.5.1.min.js')
+			script(src='//stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js', crossorigin="anonymous")
 			script(src='//cdnjs.cloudflare.com/ajax/libs/web3/1.6.1/web3.min.js')
 			script(src='//unpkg.com/moralis/dist/moralis.js')
 			script(src='//unpkg.com/peerjs@1.3.1/dist/peerjs.min.js')
